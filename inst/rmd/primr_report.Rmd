@@ -1,0 +1,60 @@
+---
+title: "Refuge Survey Activities, Alaska" 
+date: "`r format(Sys.Date(), '%B %Y')`"
+output: 
+  bookdown::html_document2:
+    toc: true
+    toc_depth: 3
+    toc_float: true
+    number_sections: false
+    self_contained: yes
+    highlight: pygments
+---
+
+
+```{r setup, include=FALSE}
+library(knitr)
+library(tidyverse)
+library(odbc)
+library(DT)
+library(tidyselect)
+  
+knitr::opts_chunk$set(echo = TRUE)
+
+source("../functions/query_iris.R")
+source('../functions/primr_get_iris.R')
+read_chunk('../plots.R')
+```
+
+```{r get_data, echo=FALSE}
+
+dim_survey <- query_iris(con, "Refuges", "DimSurvey") %>%
+  filter(Station %like% "FF07%") %>%
+  #filter(SurveyStatus != "Historic") %>%
+  collect()
+
+dim_annual_activity <- query_iris(con, "Refuges", "DimSurveyAnnualActivity")
+dim_annual_activity_ak <- dim_annual_activity %>%
+  filter(str_detect(Station, "FF07")) %>%
+  collect()
+
+```
+
+
+# Introduction
+
+Here is where we would have text with inline code for dynamic summary stats. For example, there are currently `r length(survey_data$surveyId)` PRIMR records for the Alaska region. The earliest survey started in `r min(survey_data$startYear)`. The longest running historical survey ran `r max(as.numeric(survey_data$endYear, na.rm=T) - as.numeric(survey_data$startYear, na.rm=T), na.rm=T)` years.
+
+```{r figure1, fig.cap="Number of current surveys by Refuge, Alaska Region.", echo=FALSE}
+```
+
+
+# Tables
+
+```{r table1, echo=FALSE, message=FALSE}
+```
+
+# Appendix
+
+```{r ref.label=knitr::all_labels(), echo=TRUE, eval=FALSE}
+```

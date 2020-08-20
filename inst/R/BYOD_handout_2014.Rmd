@@ -1,0 +1,565 @@
+---
+title: Reproducible Research and Dynamic Documents, and an Introduction to State-and-Transition
+  Models
+author: "Jeffrey M. Warren"
+date: "Tuesday, September 16, 2014"
+output: pdf_document
+fontsize: 12pt
+---
+
+*****
+#Reproducible Research and Dynamic Documents
+##Reproducible Research
+Reproducible research is a concept with its history built upon the *literate programming* concepts developed and espoused in the 1980s by Donald Knuth in his book of the same name published in 1983. Knuth is a computer scientist, mathematician, and Professor Emeritus at Stanford University who has authored several other influential books, including the four volume "The Art of Computer Programming" (1968). He is best known for his work with *literate programming* and as the primary creator of the TeX (pronounced 'tech') markup language (a typesetting system popular with mathematicians, statisticians, physicists, engineers, and computer scientists, among others). 
+
+The driving concept behind *literate programming* is that programming should follow the logical flow of thoughts from the programmer, not in a manner or order imposed by the computer. Most importantly for our purposes, *literate programming* introduced the concept of writing program documentation that includes the source code, not the other way around (i.e., not simply annotating program code). (As a biologist you may wonder how this is important to us; it will become more obvious later on.) As Knuth stated:
+
+>Let us change our traditional attitude to the construction of programs: Instead of imagining that our main task is to instruct a computer what to do, let us concentrate rather on **explaining to human beings** what we want a computer to do. 
+
+Knuth's influential ideas were seminal in the development of reproducible research (RR) in the 'computational' sciences (computer science, statistics, many areas of engineering, etc.). Theoretical or experimental sciences (like mathematics or biology) facilitate reproducibility by inclusion of proofs (e.g., theoretical mathematics) or experimental methodology (e.g., experimental biology). Computational sciences have been described as 'hybrid' sciences (Kovacevic 2007), where publications are 'vague, hand-waving and with simplest experiments as proof' (Kovacevic 2007). Proponents of RR believe the published article is advertisement of the scholarship; the data, analyses, and program code that produced the article are the true scholarship (Kovacevic 2007). By providing data and code, every aspect of an article becomes reproducible (at least within the computational sciences) and transparent. It also facilitates building upon existing research and reduces redundancies. 
+
+We are seeing similar efforts in the experimental sciences through efforts to share and archive data used in publications. Data archival requirements are increasingly being implemented by governmental and funding agencies, and journals. These efforts are directed at addressing two issues raised by the scientific community:
+
+* Authors are often poor stewards of their own data, making the likelihood of those data being extant (i.e., locatable and shareable) decline at an alarming rate each year (Vines et al. 2014; Current Biology).    
+* Authors often will not share data used in a publication, precluding verification of results and limiting the ability to build upon existing results. 
+
+We see the concepts of transparency and repeatability being expressed in our own agency with efforts such as ServCat, increased emphasis on data management and sharing policy, hiring of data managers, etc. Each of these efforts acknowledge the importance of taking care of the data we collect, i.e., proper data stewardship. If it is worth spending resources (i.e., time and money) to collect, it should be equally worthy of taking care of it once collected. 
+
+##Dynamic Documents
+
+I believe most would agree that RR is conceptually appealing, but 1) would it be worthwhile to integrate RR concepts with refuge science and management, and 2) how are those concepts applied? I believe the short answer to 1 is a qualified "yes". Targeted monitoring (*sensu* Nichols and Williams 2006) that, by definition, is integrated into a management decision process would, I believe, realize important efficiencies by implementing RR concepts. First, there would be transparency in how metrics used to quantify the current state of the system were estimated. For example, assume a refuge has an objective to provide a certain area of wetland habitat in an early seral stage indicated by a threshold level of sago pondweed (*Stuckenia pectinata*). When sago canopy cover was estimated to be below the decision threshold (*sensu* Martin et al. 2009) the wetland would be drawn down for a year to stimulate early-seral species. Following RR concepts in this simple scenario provides others the opportunity to verify 1) reasonable monitoring and analyses are being used to estimate sago canopy cover, and 2) the estimates themselves are correct. Second, if personnel were to change it would be much easier for the new staff to understand how the data were summarized/analyzed/synthesized to inform management. Lastly, it becomes easier for monitoring efforts to be built upon through time as knowledge is gained; this is also commonly referred to as 'double-loop' learning in the context of adaptive management. Some of the same efficiencies would be gained for surveillance monitoring, e.g., monitoring to track the trend of a focal species. 
+
+So far it feels like we are still in a fairly nebulous, arm-waving discussion about RR that may or may not be practicable, or applicable, to refuge science and management. One of the very applied aspects of RR concepts which can remedy that is dynamic documents. Dynamic documents are simply '*source documents containing both program code and narratives*' (Yihui Xie, author of the R package knitr). This allows the creation of a document that is a single-source for the code that produces the results, figures, and tables from a data set, as well as the narrative that explains *what* was undertaken and the interpretation of the outcome. The document is *dynamic* in the sense that when the data are updated *everything* in the document that is a product of the data analysis is also updated. That means if you find a data error after writing a report you can simply re-run the dynamic document script and have a ***fully*** updated report with no more cut and pasting of every figure, table, or estimate provided in the report! It also means that when new data are available, e.g., an annual monitoring effort is undertaken, you can update the report quickly and efficiently. 
+
+Now we're getting somewhere! There are a number of ways to create dynamic documents - we're going to build upon what we've learned in R the last few years and use the R Markdown package in RStudio. To do this you'll need to have a recent version of R (http://www.r-project.org/) and RStudio (http://www.rstudio.org/) installed (this document was produced with R version 3.0.3 and RStudio version 0.98.978). You'll also need to install the knitr (pronounced *knitter*) package. R Markdown provides a markup language that will create a document by 'knitting' together the narrative (literate text) and code chunks in an .Rmd file into either an HTML, Word, or PDF document. The latter (PDF) produces a more professional-looking report and may ultimately be easier to produce publication-quality tables within. If you want to produce PDFs you'll also need to install MikTeX, a version of TeX for PCs (most easily installed through a full installation of ProTeXt, available at http://www.tug.org/protext/). 
+
+Online support for creating dynamic documents in RStudio via R Markdown and the knitr package are available at:    
+
+* R Markdown website (http://rmarkdown.rstudio.com/)
+* knitr package website (http://yihui.name/knitr/)
+* knitr in a knutshell (http://kbroman.org/knitr_knutshell/)
+
+###Workflow Considerations
+Before we get into the details of creating a dynamic report using an example dataset, we'll start by discussing workflow to get us all thinking about the process from database to finished report. (We'll forego a conversation about *how* the finished report will be used to inform management and facilitate single- and double-loop systemic learning, also a component of workflow process.) I generally house databases in a primary folder specifically for that purpose, i.e, the folder is only used to store databases and documents hotlinked to them (e.g., I sometimes hotlink a file on the startup form with directions on data entry or metadata not stored in the database). I have project folders that house basically everything *but* databases; subfolders within each project folder are set up for each year to house annual reports and miscellaneous files relevant to a specific year. Importantly for this discussion, I have a folder titled 'AnnualReport' where I put the R Markdown file (.Rmd) that creates the dynamic report. This folder is also where updated text files can be sent from the database each time new data are available. This is important because it allows you to set your working directory in R once at the start of your .Rmd script. Doing this means your inputs (i.e., data in text files) and outputs (i.e., dynamic report) can be found in the same folder. Once you create a final report it should be moved to an appropriate folder and saved under a new file name. For example, if your dynamic document is named 'WetlandSurveyReport.Rmd' it will produce a file of the specified format (HTML, Word, PDF) of the same name each time you run the script. You'll want to move a final version each year (or other time interval based on reporting needs) if you don't want it over-written with the next updated version.
+
+For the purposes of this exercise you should set up the example database on your desktop and create a folder named 'AnnualReport', also on your desktop. Then go into the database and take a look at how it is structured to house the wetland submerged aquatic vegetation (SAV) data (the Field Methods are described below). Open each of the make-table queries (qrySAVAbundance and qrySAVCovariates) in design view and see if you understand how it is taking data from relational tables and creating a 'flat' file for summarizing and analyzing. Next go the 'External Data' tab and open the 'Saved Exports'. Create a new saved export that will export a text file for each table created by the make-table queries you just looked at (i.e., tables SAVAbundance and SAVCovariates) to the 'AnnualReport' folder. You'll need to close the 'Saved Exports' window, highlight the table you want to export (e.g., SAVAbundance), and click the 'Text File' export button. In the process of setting up your export you'll need to make sure you 1) set the first row as header, 2) select 'space delimited' for the data structure, and select 'none' for text qualifier. The files should be named as the table name plus the text file extension (e.g., SAVAbundance.txt). Once you set up a saved export process you can easily repeat the export process if you make any edits to your data in the database or have new data to use. Simply run the two make-table queries and then export the updated tables to your 'AnnualReport' folder. 
+
+###An Introduction to R Markdown
+O.k., let's get started. Open RStudio and start a new R Markdown session by going to File/New File/R Markdown. This will open a dialog box where you will select 1) what to create (document, presentation, 'shiny' web application, or open an existing template), 2) a title (put in "Example Annual Report"), 3) author (put yourself if it doesn't do so by default), and 4) default output format (HTML, PDF, Word; select PDF as long as you were able to install MikTeX). Once you click 'OK' an .Rmd file will be created for you. Save the file ('File/Save As') in your 'AnnualReport' folder on your desktop. This file has a few sentences describing R Markdown and two example 'code chunks'. Code chunks are just as they are described - chunks of code within your narrative that are evaluated when you run your .Rmd file. Code chunks start with three backticks (found on the key to the left of 1) and a small r in curly brackets (```{r}) and end with three backticks. 
+
+Start by opening the R Markdown help file in RStudio by clicking on the question mark on the file tab's toolbar. This will provide a quick and basic reference for R Markdown commands. Next, let's create a code chunk that will set the working directory and import the data. Start the code chunk just below the header section of the file (the area that contains the title, author, etc.) with three backticks and a little r in curly brackets. Then type the following code, correcting the 'setwd' command to direct R to where the AnnualReport folder containing the data files is on your computer. The default action is to print out the code implemented in a code chunk; If you don't want to see this simply add 'echo=FALSE' to the code chunk like this {r, echo=FALSE}. For a full list of chunk options visit http://yihui.name/knitr/options.
+
+
+```{r import_data}
+## Update data in databases and export to AnnualReport folder
+setwd("C:/Users/jewarren/Biology/Research_Projects/Lower_Lake_Project/AnnualReport")
+sav<-read.table("SAVAbundance.txt", sep=" ", header=T)
+water<-read.table("SAVCovariates.txt", sep=" ", header=T)
+
+```
+
+It is good to get in the habit of naming code chunks - it will make it easier for you to find and fix scripting errors when they arise. To name a code chunk simply put the name after the lower-case r with a single space separating the two, e.g., {r import\_data, echo=FALSE} will name the code chunk you just created 'import\_data' and preclude printing of the code in your report (echo=FALSE). 
+
+If you want to test a line of code in a code chunk before evaluating it in the full document you can send it to the R console using CTRL+Enter. Try that with the lines of code above (we'll knit the document together after a few steps). 
+
+Now we can put an introductory narrative where the current file has the two paragraphs describing R Markdown. Delete the latter, and at the top of the file below the first code chunk, type a single pound sign followed by 'Introduction' (i.e., #Introduction). That will set a primary heading for the introduction section. On the next line paste the following paragraphs as a brief introduction for the report: 
+
+>Shallow lakes often exist in one of two stable states. The first is a relatively clear water, submerged aquatic vegetation (SAV) dominated condition. The second state is characterized by turbid water and domination by phytoplankton (Blindow 1992), epiphyton, and/or filamentous algae (Phillips et al. 1978). These two states fall along a continuum of abiotic and biotic factors such as total phosphorous concentrations (Bayley and Prather 2003) and the presence of zooplankton grazers (Jeppesen et al. 1998), respectively. Eutrophication of shallow lakes has been repeatedly observed to result in a system transitioning from a SAV- to phytoplankton-dominated state (Phillips et al. 1978, Egertson et al. 2004). Similar shifts have been driven by complete substrate desiccation during periods of drought and mechanical disturbance of ice (Blindow 1992).  
+
+>Emergent vegetation constitutes a third stable state commonly found at the periphery, or during extended periods of low water, within shallow lake wetland systems. The transition between open-water (either SAV- or phytoplankton-dominated) and emergent vegetation states is largely driven by hydrologic regime, i.e., the periodicity and frequency of drying events (drought, drawdown) that result in exposed mudflat (van der Valk 1981). Mudflat is a necessary condition for the germination and establishment of most emergent plant species (Kadlec and Wentz 1974). When reflooding occurs, dense stands of inundated emergent vegetation persist for a brief period; many species of emergent wetland plants cannot survive if continuously flooded (Kadlec 1962, Harris and Marshall 1963). 
+
+>The non-linear vegetation community dynamics observed on Lower Lake have been largely in response to water level manipulations. These water level manipulations can be considered a perturbation, with the ability to predict the outcome of such manipulations varying dependent upon the knowledge of the system being manipulated. Importantly, ecological systems commonly respond to perturbations in non-linear fashion with multiple states possible (Drake 1990), and wetlands are no exception (van der Valk 1981, Zweig and Kitchens 2009, Smith 2012). This can be contrasted with linear succession to a climax seral community as initially espoused by Clements (1936). Application of linear climax theory to management has proven largely unfruitful (Stringham et al. 2003), and led to the development of non-linear state and transition models (Westoby et al. 1989).
+
+>State and transition models (STMs) provide a framework to address the needs outlined above. An STM graphically depicts the current knowledge of ecological dynamics on a site, identifying the various vegetation communities, i.e., states, which could exist. The STM also identifies the conditions, disturbances, and management actions that may cause a site to transition among states (e.g., from submerged aquatic vegetation to emergent vegetation in a wetland) or simply shift among phases of a state (e.g., from milfoil-dominated to pondweed-dominated within the submerged aquatic vegetation state). Therefore, STMs can assist in making management decisions by identifying actions to encourage sustaining a current state, or those that would likely result in a transition to a more preferred state.  
+
+>The applicability of state and transition models for management of a shallow lake wetland system, Lower Red Rock Lake and associated River Marsh, is being explored using existing sampling to assess attainment of the current habitat objective. The objective for the lake, defined in the Comprehensive Conservation Plan (CCP; USFWS 2009), is to "increase the percent coverage of pondweeds (*Potamogeton* spp. and *Stuckenia* spp.) and Canadian waterweed (*Elodea canadensis*), collectively, to >40% in Lower Red Rock Lake and River Marsh within 10 years of CCP approval".
+
+The above paragraphs were blockquoted by putting a greater-than (>) sign at the start of the paragraph, which started on a hard return. Also, in order to tell Markdown that you want something *italicized* you'll need to surround it by asterisks. You'll need to do that for the scientific names above to make sure when you knit the document it does that for you. Surrounding text with double asterisks will **bold** text and triple asterisks will ***bold and italicize*** text.   
+
+Now we want to add a Methods section, which will comprise two subsections - Study Area and Field Methods. We want the latter two to have a secondary heading. Create the primary heading for Methods the same as you did for the Introduction. To create secondary headings all we need to do is put two pound signs in front of Study Area and Field Methods. Put Study Area on the line below Methods in your .Rmd script, then paste the study area description below that. You'll want the species names to be italicized in this section, too, so don't forget to surround the text for those with asterisks.  
+
+>This work was conducted on Lower Red Rock Lake and the associated River Marsh (hereafter Lower Lake), which sit in the eastern extent of the Centennial Valley of southwest Montana, USA (Fig. 1).  Lower Lake is a large (2,332 ha), high elevation (2014 m above mean sea level) wetland encompassed by Red Rock Lakes National Wildlife Refuge (Refuge).  Lower Lake is part of a larger shallow lake wetland complex that is a remnant of Pleistocene Lake Centennial, a prehistoric lake that was believed to have formerly covered the valley floor to a depth of ca. 20 m (Sonderegger et al. 1982). The present-day complex sits upon ca. 3.7 m of well-bedded olive marl with minor silt and interspersed organic detritus that took ca. 11,000 years to form (Mumma 2010). Lower Lake has two primary tributaries, Odell and Red Rock creeks. Red Rock Creek drains the north face of the eastern Centennial Mountains, where soils consist principally of carbonitic mineral (USFWS 2009). The Odell Creek drainage flows through a large alluvial fan that drains Paleozoic limestone (Mumma 2010). 
+
+>Lower Lake water depths typically do not exceed 1.5 m, with large open water areas interspersed with hardstem bulrush (*Schoenoplectus acutus*) islands.  Nearly half of the area is extensive stands of seasonally flooded Northwest Territory sedge (*Carex utriculata*) that contain small (<2 ha), scattered open water areas. The system commonly experiences a bimodal hydrograph with the first pulse driven by valley snowmelt (Fig. 2). At this time the palustrine marsh peripheral to Lower Lake, and contiguous with the palustrine marsh peripheral to Upper Red Rock and Swan lakes upstream of Lower Lake, can be completely inundated, giving the brief appearance of a single lake. The second pulse is driven primarily by runoff from the Centennial Mountains. Summer water levels are sustained by groundwater discharge; the hydraulic gradient switches from negative (recharge) to positive (discharge) mid-summer across much of Lower Lake (Greenwood et al. 2011). Based on specific conductance and salinity, Lower Lake is classified as a fresh water wetland (Stewart and Kantrud 1972, Gleason et al. 2009) of intermediate alkalinity.
+
+Now we need to import and embed a study site figure that was created in GIS and saved as a .jpg file. It is easily done if you put a copy of the .jpg in the same folder as the .Rmd file (AnnualReport for this example) and then type \!\[\](image\_filename) on its own line where you want to embed the image. The square brackets are used to insert formatting commands, but we don't need to do that right now. On the line below that which embeds the image paste in the figure caption below.  
+
+![](LRRL_fig.jpg)
+**Figure 1**. Lower Red Rock Lake study area within Red Rock Lakes National Wildlife Refuge, Montana.
+
+For the second section of Methods, the Field Methods, put a secondary subheading as described above, then paste in the text below. In order to have Markdown create $\pm$ signs and $\mu$, both in the second paragraph of the field methods below, you'll need to precede 'pm' or 'mu', respectively, with a backslash and then surround that with dollar signs.  
+
+>Random points (n = 80) were generated within open water areas of Lower Lake based on 2005 aerial imagery (National Agriculture Imagery Program, U.S. Department of Agriculture).  Points represented the central point on the northern edge of 5- x 5-m quadrats that were surveyed from a 5 m canoe oriented north-south, or on foot when water levels were too shallow to survey by canoe.  Canopy cover class (Daubenmire 1959) was recorded by species, with plots that fell completely on hardstem bulrush islands recorded as such. Low water conditions in 2007 precluded visiting some plots.  
+
+>Plot-level environmental variables recorded concurrent with vegetation surveys included 1) water depth ($\pm$ 1 cm), 2) specific conductance ($\mu$ S cm^-1^), 3) pH, 4) salinity (ppt), and 5) temperature ($\pm$ 0.1 °C). The latter four variables were collected using a hand-held water quality meter (model 63, YSI Incorporated, Yellow Springs, OH). We recorded if the water was too turbid at a plot to see clearly the lake substrate from 2007-2011. Beginning in 2012 we took a secchi disk depth at each plot to more objectively determine if the water was too turbid to permit ocular estimation of small-statured SAV species. Plots were excluded from analysis if 1) they were recorded as 'too turbid' (2007-2011), or 2) if *secchi disk depth - water depth* < 0 (2012). Lastly, plots that occurred on hardstem bulrush islands were not included in analysis; the islands persisted in their locations throughout the duration of sampling. 
+
+O.k., now we have an .Rmd file that 1) has a report title, 2) lists you as the report's author, 3) provides the date the report was started, 4) contains narrative introduction and methods sections with primary headings, 5) includes narrative study area and field methods sections with secondary headings, 6) sets the working directory (where R finds the data and puts the output file), and 7) imports the data from text files that you put there with an export procedure from your project's database. Let's try 'knitting' the document together to see what it looks like. Go to the 'Knit' dropdown button at the top of the RStudio scripting window and select 'Knit PDF'. This will run the .Rmd file in an R Markdown window, providing the output in a separate PDF viewer (SumatraPDF). Hopefully what comes out is a document that looks like a great start to a report! Next we need to include summaries, analyses, and their output.
+
+The most basic aspect of the report we are creating is assessing whether or not Lower Red Rock Lake and the River Marsh are meeting the objective as written in the Comprehensive Conservation Plan. That objective, stated above, calls for >40% canopy cover of pondweeds and Canadian waterweed in open water habitats to provide 'high quality' forage for trumpeter swans (*Cygnus buccinator*) and other waterbirds. To do this, we need to estimate annually the mean canopy cover of submerged aquatic vegetation using monitoring data. The maketable query 'qrySAVAbundance' in the database created a flat table (i.e., one record for each time a sample point was visited) in the database. This table was then exported as a text file named "SAVAbundance.txt" to your AnnualReport folder. This file was then imported in the first code chunk above, with the resulting dataframe named 'sav'. Now we need to take that data and calculate the summaries necessary to asses our objective. Time to start a new code chunk!
+
+First we need to estimate mean annual canopy cover by species using monitoring data, and the level of precision for each estimate (e.g., standard error). Since we're interested in determining if the CCP goal is being acheived, we'll start by creating an extra column at the end of the raw data that is the canopy cover summation for pondweeds and Canadian waterweed. (Note that the dataframe 'sav' has columns named using plant species codes obtained from the USDA Plants database, e.g., *Stuckenia pectinata* is STPE15.) The next step is to create a matrix with a row for each year survey data are available and a column for each plant species in the dataframe. A 'for' loop then calculates the mean canopy cover for each species each year and stores it in its proper place in the matrix we created for that purpose (sav.means). The same steps are followed to calculate a standard error for each estimate of canopy cover. Lastly, we create an object in the workspace to be called later for plotting for each of 1) the CCP species canopy cover estimate and SE for the current year, and 2) the eight most abundant species' estimates and SEs.
+
+In your .Rmd file start a results section with a primary header (i.e., put '#Results' on its own line below the Field Methods narrative), then begin a new code chunk named 'calculate\_canopy\_cover' (three backticks and a lower-case r in curly brackets) and paste the script below into it. Be sure to end the chunk with three backticks; you can also set 'echo=FALSE' in the code chunk call line (following the lower-case r) so you don't see the code in your report.
+
+```{r calculate_canopy_cover, echo=TRUE}
+## Total Potamogetons, Stuckenias, and Elodea for CCP objective
+sav$CCP <- rowSums(sav[,c("ELCA7","POFO3","POFR3","POPR5","PORI2","POZO",
+                          "STFIF","STPE15","STVA8")])
+
+##Calculate means and standard deviations for all species all years
+sav.means <- as.data.frame(matrix(data=NA, 
+             nrow=length(levels(as.factor(sav$Year))), 
+             ncol=length(sav[1,-(1:3)]))) #Create a dataframe to store 
+                                          #annual mean estimates
+
+names(sav.means) <- names(c(sav[,-(1:3)])) #Name sav.means columns
+
+## Calculate mean canopy cover and store in sav.means dataframe
+for (i in min(sav$Year):max(sav$Year)){
+  for (j in 4:length(sav[1,])){
+  sav.means[i-(min(sav$Year-1)),j-3] <- round(mean(sav[sav$Year==i,j], 
+                                        na.rm=T),1)
+  }
+}
+
+ccp.cy.mean <- round(sav.means[max(length(sav.means[,1])), 
+                               max(length(sav.means[1,]))],1)
+
+sav.sterrors <- as.data.frame(matrix(data=NA, 
+                nrow=length(levels(as.factor(sav$Year))), 
+                ncol=length(sav[1,-(1:3)])))
+names(sav.sterrors) <- names(c(sav[,-(1:3)]))
+  
+for (i in min(sav$Year):max(sav$Year)){
+  for (j in 4:length(sav[1,])){
+  sav.sterrors[i-(min(sav$Year-1)),j-3] <- round(sd(sav[sav$Year==i,j], 
+                  na.rm=T)/sqrt(na.omit(length(sav[sav$Year==i,j]))),2)
+  }
+}
+
+ccp.cy.sterror <- round(sav.sterrors[max(length(sav.sterrors[,1])), 
+                                     max(length(sav.sterrors[1,]))],2)
+
+sav.graph <- sort(sav.means[max(length(sav.means[,1])),], decreasing=T)[1:8]
+sav.graph.names <- names(sav.graph)
+sav.graph.se<-sav.sterrors[max(length(sav.sterrors[,1])),c(sav.graph.names)]
+
+```
+
+I'll be the first to admit that the above is a fair amount of pretty painful code. It is written to 'see' the dimensions of the dataframe and adjust the output for each year and each time the eight most abundant species changes with new monitoring data. If it didn't need to adjust 'on the fly' it wouldn't need to be so cryptic. The good news is that once the code is written (and we can help you get that done) you should be able to update the summaries that inform whether or not the CCP objective is being met relatively painlessly after new monitoring data are available. If you ran your .Rmd file with the above code chunk and 'echo=FALSE' you may wonder where all the results are, i.e., they don't show up in your report. What R did was create the objects you defined in the code chunk and store them in a workspace so they could be 'called' when needed. We'll do that in just a minute when we create a figure using the objects created with the code chunk above. 
+
+Before we do that we'll quickly explore 'inline' R code. It is just as it sounds, R code that is embedded within a line of narrative text. This allows you to write a sentence with results that will update when the data are updated. An inline R code starts with a single backtick and lower-case r and ends with a single backtick. There is no puncuation between the r and code snippet. Let's put a sentence in your results section that has the current-year CCP objective estimate (and SE) for canopy cover, and have the sentence update year automatically. Paste the sentence below starting 'Regarding the Lower Lake objective' into your .Rmd file below the code chunk we just created. Where you see '13.8' type 'r ccp.cy.mean', replace '1.88' with 'r ccp.cy.sterror', and replace 2013 with 'r max(sav$Year)'. Make sure each command is preceded and followed by a backtick. This will create a sentence that will automatically update the mean, SE, and year of the estimate of canopy cover for pondweeds and waterweed. 
+
+Regarding the Lower Lake objective, the combined annual estimated canopy cover for pondweeds and Canadian waterweed was `r ccp.cy.mean` (SE = `r ccp.cy.sterror`) in `r max(sav$Year)`. 
+
+Now let's embed a figure of canopy cover from the most recent year's monitoring (using the objects we created above in the calculate\_canopy\_cover code chunk of Results). Start a new code chunk named 'most\_common\_fig' and paste the script below into it. In the code chunk call line add 'echo=FALSE, message=FALSE, warning=FALSE, fig.width=7, fig.height=5'. These additional commands will prevent the 1) code, 2) messages given when installing the required packages, and 3) plot error messages (they aren't meaningful error messages), from being printed in the document. The last two commands set the figure dimensions in the document.You may also need to install package gplots if you don't already have it on your computer (click on the 'Packages' tab in RStudio, then click the 'Install' button).
+
+Now that we have a figure we need to give it a caption. We will do this by simply typing in text below the code chunk that produces the figure. See if you can make the text match that of the handout; don't forget to put an inline r code chunk to automatically update the year in the figure caption.
+
+```{r most_common_fig, echo=TRUE, message=FALSE, warning=FALSE, fig.width=7, fig.height=5}
+## Create a figure of the eight most abundant species and groups with error bars
+require(gplots)
+ciw<- 1.96*sav.graph.se
+plotCI(x = stack(sav.graph)[,1], uiw = stack(ciw)[,1], col = "black", 
+       type="p", gap=.75, pch=c(1:7), cex=1.25, main=max(sav$Year), 
+       cex.lab=1.5, cex.axis=1.5, bty="l", xaxt = "n", ylim=c(0,60), 
+       ylab = "Mean Species Canopy Cover (%)", xlab = "")
+legend("topright",sav.graph.names, pch=c(1:8), bty="n", cex=1.25)
+
+```
+**Figure 2**. Mean species canopy cover (%) for the eight most common species and groups recorded on Lower Red Rock Lake, Red Rock Lakes NWR, `r max(sav$Year)`. Species codes are provided in Appendix I. Bare = bare substrate; CCP = cumulative cover of pondweeds (*Potamogeton* spp. and *Stuckenia* spp.) and Canadian waterweed (*Elodea canadensis*) as defined in the refuge's Comprehensive Conservation Plan (CCP).
+
+Now let's see one way to create a table of summary information for all the years of monitoring. Start a new code chunk named 'annual\_table' and specify chunk options echo=FALSE, results='asis'. You can cut and past the code below into your code chunk; you may need to install library xtable first. The first line of code in the chunk creates a dataframe with milfoil, CCP objective species, and bare substrate estimates, and their SEs, across all years data area available (2007-2013). It then uses the package xtable to create a table that can be easily translated to MiKteX for creating a 'pretty' table in a PDF dynamic document. Paste the table caption below the table in this document above the table in the report you are creating (table captions should be at the top; figure captions below).  
+
+ 
+``` {r annual_table, echo=TRUE, results='asis'}
+##Collate milfoil,  CCP species, and bare substrate estimates (and SEs)  
+sav.table <- data.frame(cbind(sav.means$MYSI, sav.sterrors$MYSI, 
+        sav.means$CCP, sav.sterrors$CCP, sav.means$Bare, sav.sterrors$Bare))
+names(sav.table) <- c("MYSI","SE","CCP","SE","Bare","SE")
+row.names(sav.table) <- c(min(sav$Year):max(sav$Year))
+
+library(xtable)
+table1 <- xtable(sav.table)
+print(table1, table.placement="H", comment=F, floating=FALSE) 
+
+```
+**Table 1**. Mean annual canopy cover of 1) the most abundant submerged aquatic vegetation on Lower Red Rock Lake and River Marsh, shortspike watermilfoil (*Myriophyllum sibiricum*) (MYSI), 2) cumulative cover of pondweeds (*Potamogeton* spp. and *Stuckenia* spp.) and Canadian waterweed (*Elodea canadensis*) (CCP), and 3) bare substrate (Bare). Standard errors are provided. 
+
+Now let's create two figures to show canopy cover estimates through time for shortspike watermilfoil (a native species that is the most common SAV species in the system) and CCP species. You should create a code chunk for each figure (named 'ccp\_annual\_fig' and 'milfoil\_annual\_fig'), and specify chunk options echo=FALSE, message=FALSE, fig.width=7, fig.height=5 for each. In the figure captions be sure to bold 'Figure X' and italicize the species names.
+
+
+``` {r ccp_annual_fig, echo=TRUE, message=FALSE, fig.width=7, fig.height=5}
+plotmeans(sav$CCP~sav$Year, barcol="black", cex=1.25, cex.lab=1.5, bty="l", 
+          ylim=c(0,50), ylab = "Mean Canopy Cover (%)", xlab = "Year")
+abline(h=40, lwd=2, col="gray70")
+
+```
+**Figure 3**. Mean cumulative canopy cover of pondweeds (*Potamogeton* spp. and *Stuckenia* spp.) and Canadian waterweed (*Elodea canadensis*) for Lower Red Rock Lake and River Marsh, 2007-`r max(sav$Year)`. The gray horizontal line represents the current canopy cover objective (>40%) as defined in the refuge's Comprehensive Conservation Plan (CCP; USFWS 2009).
+
+
+``` {r milfoil_annual_fig, echo=TRUE, message=FALSE, fig.width=7, fig.height=5}
+plotmeans(sav$MYSI~sav$Year, barcol="black", cex=1.25, cex.lab=1.5, bty="l", 
+          ylim=c(0,50), ylab = "Mean Canopy Cover (%)", xlab = "Year")
+
+```
+**Figure 4**. Mean canopy cover of shortspike watermilfoil (*Myriophyllum sibiricum*), the most common species of submerged aquatic vegetation in Lower Red Rock Lake and River Marsh, 2007-`r max(sav$Year)`. 
+
+Now let's create two simple figures of abiotic variables collected during surveys - water depth and specific conductivity. The code chunk names will be 'h2o\_annual\_figure' and 'spcond\_annual\_fig', respectively, and each will have code chunk options echo=FALSE, warning=FALSE, message=FALSE, fig.width=7, fig.height=5. 
+
+``` {r h2o_annual_fig, echo=TRUE, warning=FALSE, message=FALSE, fig.width=7, fig.height=5}
+plotmeans(water$Depth~water$Year, barcol="black", cex=1.25, cex.lab=1.5, 
+      bty="l", ylim=c(0,100), ylab = "Mean Water Depth (cm)", xlab = "Year")
+
+```
+**Figure 5**. Mean annual water depth (cm) in Lower Red Rock Lake and River Marsh, 2007-`r max(sav$Year)`.
+
+
+``` {r spcond_annual_fig, echo=TRUE, warning=FALSE, message=FALSE, fig.width=7, fig.height=5}
+plotmeans(water$SpCond~water$Year, barcol="black", cex=1.25, cex.lab=1.5, 
+          bty="l", ylim=c(120,220), ylab = "Mean Specific Conductivity (mS)", 
+          xlab = "Year")
+
+```
+**Figure 6**. Mean annual specific conductivity ($\mu$S) in Lower Red Rock Lake and River Marsh, 2007-`r max(sav$Year)`.
+
+Now that we've created a simple report with eight code chunks let's revisit why we named each one. Click on the 'Chunks' dropdown menu in the upper right corner of the RStudio text editor. You'll see several options, including 'Jump To...'. Click that option and you should see a list of your named code chunks that you can navigate to by simply clicking on the chunk you want. This makes navigating through an .Rmd file to make updates or fix bugs in your code that much easier. You can also navigate to individual chunks, and evaluate your code in a chunk using the 'Run Current Chunk', 'Run Next Chunk', or 'Run All' options.
+
+Presumably you would want more text describing your figures and results in your report, but we won't worry about that right now. We'll revisit your report (and .Rmd file) tomorrow when discussing our next topic, state and transition models (STMs). To that end, please read through the introduction of the report you just created for basic background on STMs.
+
+*****
+\pagebreak
+
+#Introduction to State-and-Transition Models
+In creating yesterday's dynamic document report we pasted in an introduction that included a cursory description of state and transition models (STMs) and how they may be useful to wetland managers. Today we'll dig a bit more deeply into the topic of STMs and explore some analytical techniques for 1) determining vegetation community phases within states, 2) selecting indicator species for vegetation community phases to use for monitoring, and 3)  examining environmental gradients that separate vegetation community phases. 
+
+##State and Transition Models 
+State and transition models are a type of conceptual ecological model that synthesizes what we know about vegetation dynamics of an ecological site. As a synthesis of what is known about an ecological site, considerable effort is necessary to take available information and distill it down to a diagram that clearly defines states (plant associations), vegetation community phases within states, community pathways between phases, and transitions and restoration pathways between states. Before we can synthesize information about an ecological site we need to know *what* an ecologial site is and how to define it. The 'textbook' definition of an ecological site provide by NRCS is:
+
+>An ecological site is defined as a distinctive kind of land with specific soil and physical characteristics that differ from other kinds of land in its ability to produce a distinctive kind and amount of vegetation and its ability to respond similarly to management actions and natural disturbances.
+
+Not poetic, but effective! Using the above definition, ecological sites can be defined and then described (the latter aptly named 'ecological site descriptions', or ESDs). An ESD is the narrative that synthesizes what we know about the vegetation dynamics, soils, hydrology, etc., of an ecological site, and the STM distills that information into a single diagram depicting vegetation dynamics and their primary drivers, including management actions. Given the historical development of this framework by the rangeland ecology and management community, most of the examples you'll find come from western North American rangeland sites. 
+
+Before we go any further we need to define the components of STMs outlined above - states, community phases, transtions, and restoration pathways. The definitions provided below were excerpted from Bestelmeyer et al. (2010).
+
+* State: Plant community phases [sorted] according to the structures (e.g., dominant species, functional groups, and surface soil conditions) that control feedack mechanisms and ecological processes.
+    + Reference State: Identified to represent the historical or natural state for the site including its range of variation. Often implicitly assumed that historically observed states are those that provide the maximum options for management and ecosystem services.
+    + Alternative States: Feature a distinct set of feedbacks and processes compared to the reference state; technology and/or rare, extreme natural events (e.g., a once-in-a-century extreme wet year) would be needed to restore the reference state. Alternative states can be extremely persistent due to strong feedbacks, such as when exotic species invade and alter fire regimes and soil nutrient cycling.
+* Community Phase: The distincitve plant communities and associated dynamic soil property values that can occcur over time within a state. Typically reflect management-relevant differences in plant communities and focus on differences in dominant species that govern the ecological processes and uses of a site. 
+    + Reference Community Phase: That [phase] which best exhibits the characteristics of the reference state, or that is considered to be the most resilient within the state (i.e., a healthy condition vs. an at-risk condition, see below).
+    + At-risk Community Phase: The phase that is most vulnerable to a transition to an alternative state.
+* Community Pathway: Mechanisms of change among community phases with the same state. Community pathways are best described using monitoring or inventory data coupled to information about climate, management, or other conditions. 
+* Transition: Mechanisms of change among states. Transitions are due to changing feedbacks and processes that subsequently limit the recovery of the former state.
+    + Slow Variables and Triggers: Drivers and events that initiate a transition to an alternative state. Slow variables reflect more gradual processes such as shrub recruitment rates, rates of change in water table depth associated with land use, or long-term decreases in grass density. Triggers are discrete events that precipitate a transition, such as a drought period that stresses perennial grasses, an intense rainfall event that produces highly erosive overland flow, or a wildfire. 
+    + Thresholds: A set of conditions (and a point in time) beyond which altered ecosystem structures and functions do not recover by themselves.Thresholds are the consequences of the slow variables and triggers described above.
+* Restoration Pathways: The technologies, events, and conditions within alternative states (including susceptible community phases) that can lead to recovery of the former state. 
+
+A simple schematic showing the relationships among the components of an STM is provided in figure 7.
+
+![](STM_Stringham.png)
+
+**Figure 7**. The general structure of a state and transition model, taken from Stringham et al. (2001).
+
+Now that we have a better understanding of *what* an STM is and its component parts, we can discuss a little history leading to the development of STMs as a management tool.
+
+Clementsian succession (1916) dominated early attempts by rangeland managers to predict the outcome of rangeland disturbance (primarily grazing and fire). In Clements's view vegetation communities responded to disturbance in a linear fashion, i.e., disturbance would push a climax community to an earlier seral stage that would, upon removal of the disturbance, progress in a predictable linear fashion through a series of communities back to the climax community for that site. This was the underlying paradigm of Dyksterhuis's (1949) seminal work that was the foundation for rangeland management for nearly 40 years. Failures of this paradigm to account for non-linear responses of systems to disturbance led to the initial development of STMs, introduced by Westoby et al.'s (1989) paper that acknowledged rangelands often had multiple 'equilibrial' states. STMs have since become a common tool used in rangeland management, with STM development for ESDs an ongoing effort by NRCS and others. For a good synthesis of the history of early efforts to use Clementsian successional theory to quantify rangeland health, and the switch to STMs with multi-state equilibrial theory, see Briske et al.'s (2005) paper. The Society for Range Management published a special issue of *Rangelands* in 2010 to give practical guidance on developing ESDs and STMs (available online at: http://jornada.nmsu.edu/esd/literature#rangelands). A recent critical review of the application of ESDs and STMs is available in Twidwell et al.'s (2013) *Ecosphere* paper. 
+
+The application of ESDs and STMs for managers outside of rangeland ecology appears to be gaining traction. While most STM development still occurs within the realm of rangeland management, testing potential use of rangeland ESDs and STMs for wildlife habitat management (e.g., Doherty et al. 2011, Williams et al. 2011) is becoming more commonplace, as is development of STMs for other habitat types (e.g., wetlands, Zweig and Kitchens 2009). There is currenlty a multi-region USFWS (regions 1 and 6) project exploring the applicability of STMs for management of impounded wetlands. The group has used data from Lower Red Rock Lake (the same data we used to create our report yesterday) to pilot methods for using monitoring data to inform STM development. STMs are largely qualitative, i.e., based on existing knowledge of an ecological site synthesized by experts. Therefore, most STMs lack a rigorous quantitative accounting of, for example, the likelihood of a particular management action moving the state or phase of a community to an alternative state (or phase). This is problematic for managers when they need to weigh alternative actions to achieve an objective. For example, consider two possible treatments, each intended to push a wetland to an alternative state, with one twice as costly as the other. If the more costly treatment is three-times more likely to result in achieving the desired alternative state it would be the logical choice. However, without knowing how likely each action would be in achieving the desired state a manager would likely decide based solely on treatment cost.
+
+Few examples exist for using empirical data to 1) define vegetation community phases, 2) select indicator species for community phases, or 3) quantify transition probabilities between phases and/or states. We'll use the Lower Lake data to demonstrate 1, 2, and part of 3. 
+
+###Cluster Analysis for Defining Vegetation Community Phases 
+Cluster analysis is a group of mulitvariate techniques commonly used in community ecology for grouping sites based on similarities. The goal of the analysis is to 'cluster' sites that are more similar within a cluster than among clusters. This can be done based on similarity, dissimilarity, or distance between sites. We'll calculate a dissimilarity index, which is essentially $1-similarity$, using our data from Lower Lake. These concepts are concisely described on Dave Roberts webpage (Dave is the Head of the Ecology Department at Montana State University and an accomplished community ecologist) http://ecology.msu.montana.edu/labdsv/R/labs/. The description below comes from Dave's lab 13 specifically. 
+
+>Similarity is a characterization of the ratio of the number of attributes two objects share in common compared to the total list of attributes between them. Objects which have everything in common are identical, and have a similarity of 1.0. Objects which have nothing in common have a similarity of 0.0. As we have discussed previously (see Lab 8), there is a large number of similarity indices proposed and employed, but the concepts are common to all.
+
+>Dissimilarity is the complement of similarity, and is a characterization of the number of attributes two objects have uniquely compared to the total list of attributes between them. In general, dissimilarity can be calculated as 1 - similarity.
+ 
+We'll calculate a S\o rensen dissimilarity index for the SAV data matrix of 448 plots (~80 plots surveyed repeatedly) and 22 species (and bare substrate). The S\o rensen dissimilarity index measures how different plots are from each other using presence/absence data, giving greater 'weight' to species common to both plots. The equation for calculating the S\o rensen index is $2a/(2a + b + c)$, where *a* is the number of species common to both plots, *b* is the number of species unique to the first plot, and *c* is the number of species unique to the second plot. To do this, we'll need to load the package labdsv and start a new code chunk named 'cluster_analysis' with chunk options echo=FALSE, message=FALSE. We'll also need to drop the survey data in columns 1-3 and the CCP species group (column 27). The method will not work with data other than species presence/absence data, nor are we interested in including the summation of species we created in the CCP species group.
+
+Some may wonder why it is we're treating each survey of a plot as independent, i.e., we have 448 samples in our matrix but only 80 individual plots. If we were estimating plot parameters we would not want to assume independence and would need to properly account for the repeated measures design (similar to some of the examples we've worked through in prior workshops). We aren't estimating parameters right now, but instead are calculating an index of dissimilarity that will help us objectively determine how to cluster plots both within and among years. Using STM lexicon, what we're doing is coming up with a method that will allow us to objectively define the vegetation community phase of a plot so that if, or when, it changes phases we'll recognize that a change occurred. 
+
+``` {r cluster_analysis, echo=TRUE, message=FALSE}
+require(labdsv) 
+
+##Create a dissimilarity matrix using Sorensen index
+sav.si <- na.omit(sav[,-c(1:3,28)])
+sav.si <- dsvdis(sav.si, index="sorensen") 
+
+```
+
+Just as there are several methods for calculating the similarity between plots using species survey data, there are a multitude of algorithms used in cluster analysis (you can also view Dave's webpage for more information on those), but we'll jump right to the one we'll use for clustering the plots surveyed on Lower Lake from 2007-2013. Vegetation community phases will be created by conducting a hierarchical agglomerative cluster analysis with a flexible beta of -0.25 using the dissimilarity matrix we created above. Hierarchical clustering has a number of benefits over other clustering algorithms, which has made it a commonly used technique in recent community ecology papers (e.g., Perrin et al. 2006, Little et al. 2010, Abella et al. 2012). In this method each plot starts out as an individual and the two least dissimilar plots are put together to form the first cluster. Remaining plots are fused one at a time in order of lowest dissimilarity until all plots are in a cluster. You can simply add the code below to the code chunk you just created; it will create clusters and produce a figure of the results (the figure will work best if you specify chunk options for fig.height=5 and fig.width=7). You'll also need to install package cluster for this part of the analysis.
+
+
+``` {r cluster_analysis2, echo=TRUE, message=FALSE, fig.height=5, fig.width=7}
+require(cluster)
+
+##Hierarchical agglomerative cluster analysis with flexible beta = -0.25
+sav.hacfb <- agnes(sav.si, method="flexible", 
+                   par.method=c(0.625, 0.625, -0.25, 0))
+
+##Convert the cluster to a hclust object for the next step
+sav.hacfb.hcl <- as.hclust(sav.hacfb) 
+
+##Figure of cluster analysis
+plot(sav.hacfb.hcl, labels=F, sub="", main="", 
+     xlab="Agglomerative Hierarchical Cluster Analysis", cex.lab=1.25, 
+     font.lab=2)
+
+```
+**Figure 8**. Cluster dendrogram for 448 wetland vegetation survey plots conducted within Lower Red Rock Lake, 2007-`r max(sav$Year)`. A hierarchical, agglomerative cluster analysis with a flexible beta = -0.25 was used to cluster plots.  
+
+When you look at the clustering graphically you may (actually, *should*) ask yourself 'how many clusters are 'optimal', i.e., where should I cut the tree?' That is a good question and there are a number of criteria out there for objectively determining that. We'll use an indicator species analysis (ISA; Dufrene and Legendre 1997) on output from hierarchical clustering to accomplish that. An ISA selects associated species for each cluster identified in the cluster analysis above. It does this by calculating an indicator value, *d*, that combines measures of species *specificity* and *fidelity* to a cluster. The former is maximized when a species is *only* present in a cluster, while the latter maximizes when a species occurs in *all* sites within a cluster. As defined by Dufrene and Legendre (1997), an indicator species is: 
+
+>The most characteristic species of each group, found mostly in a single group of the typology and present in the majority of the sites belonging to that group.
+
+An ISA provides a number of useful summary metrics based on *d* that we can then use to objectively decide how many clusters, i.e., vegetation community phases, are present in our data. These metrics include:
+
+1. Number of significant indicator species (*P* < 0.05)
+2. Mean indicator species value
+3. Percent strong indicator species (*d* > 0.50)
+4. Mean *P*-value of all species
+
+      
+Criteria 1-3 should peak at the most informative level of clustering, while the lowest value of criterion 4 indicates the most signficant indicator species. We'll need to run an ISA for each level created with the hierarchical clustering we just did. To do this we'll run a short script that will cunduct an ISA for each level of clustering from 2-15, store the results in a list, calculate each of the criteria outlined above, and then create a graphic for us to see the results. Start a new code chunk named 'indicator_analysis' with chunk options echo=FALSE, results='hide', fig.height=5, fig.width=7.  
+
+
+```{r indicator_analysis, echo=TRUE, results='hide', fig.height=5, fig.width=7} 
+##Conduct ISA for 2-15 clusters following Perrin et al. 2006 to determine 
+##the optimal number of clusters.
+hcl <- list()
+for (i in 2:15)
+  hcl[[i]] <- cutree(sav.hacfb.hcl, k=i) #Create a list with 2-15 clusters 
+
+isa <- list()
+for (i in 2:15)
+  isa[[i]] <- indval(na.omit(sav[,-(1:3)]), hcl[[i]]) #ISA for 2-15 clusters 
+##Use 'summary(isa[[#]])' for individual summaries
+
+##Figure of criteria used to select an optimal number of clusters
+##Calculate mean indicator value
+mn.indval <- rep(0,14)
+    for (i in 1:14) mn.indval[i] <- mean(colMeans(isa[[i+1]]$indval))
+
+##Calculate mean indicator p-value
+mn.pval <- rep(0,14)
+  for (i in 1:14) mn.pval[i] <- mean(isa[[i+1]]$pval)
+
+##Calculate percent strong indicators ($indcls >= 0.50)
+p.strind <- rep(0,14)
+  for (i in 1:14) p.strind[i] <- sum(isa[[i+1]]$indcls>=0.5)/
+                                 length(isa[[i+1]]$indcls)
+
+##Calculate the number of significant indicators ($pval >= 0.05) 
+isa.sigind <- rep(0,14)
+  for (i in 1:14) isa.sigind[i] <- sum(isa[[i+1]]$pval<=0.05)
+
+##Figure of four criteria
+par(mar=c(5,6,4,6))
+plot(2:15, isa.sigind,  pch=16, cex=1.5, cex.lab=1.5, 
+     ylab="Number of Significant Indicators", xlab="Number of Clusters")
+lines(2:15, isa.sigind, lty=1)
+axis(2, at=seq(8, 24, 2), col="black")
+
+par(new=T)
+plot(2:15, mn.pval, ylab="", xlab="", axes=F, cex=1.5)
+lines(2:15, mn.pval, lty=1)
+axis(4, ylim=c(0,0.3), at=seq(0,0.3, 0.05), labels=T, col="black")
+mtext(expression("Mean"~italic("P")~"and"~italic("d")~"values, % Strong Indicators"), 
+      side=4, line=3, cex=1.5)
+
+par(new=T)
+plot(2:15, mn.indval, pch = 17, ylab="", xlab="", axes=F, cex=1.5)
+lines(2:15, mn.indval, lty=1)
+
+par(new=T)
+plot(2:15, p.strind, pch = 18, ylab="", xlab="", axes=F, cex=1.5)
+lines(2:15, p.strind, lty=1)
+
+axis(1, xlim=0:15, at=seq(0, 16, 2), cex=1.5)
+
+```
+**Figure 9**. Criteria used to evaluate optimal number of clusters based on indicator species analysis (Dufrene and Legendre 1997). Clusters were identified with a hierarchical agglomerative cluster analysis. Number of significant indicators (*P* < 0.05; solid circles), mean *P*-value of all species (open circles), mean indicator species value (*d*; triangles), and percent strong indicators (*d* > 0.50; diamonds) identified by ISA for groups of 2-15 species. 
+
+Based on the figure above there is no conclusive 'winner', i.e., the criteria give us different optimal numbers of clusters. Both the number of significant indicators and mean *P* value of all species indicate five clusters as optimal. However, the percentage of species that are strong indicators is at its lowest, which means there are very few candidate species to use as indicators for monitoring. Let's look at summary tables for the indicator values based on three to five clusters and see if there is a clustering that provides at least one strong indicator per cluster (*d* > 0.50). We creaed a list named 'isa' to hold the results of the indicator species analysis for 2-15 clusters. The output of the ISA we conducted includes a number of tables, and the one we would like to view is 'indval'. To select those tables for the cluster groups we're interested in evaluate the following code in your R console (if it doesn't work, you may need to run all the code chunks using the 'Chunks/Run All' button; see below).
+
+```{r indval_tables, eval=FALSE}
+##Look at inval tables for 3-5 clusters
+isa[[3]]$indval
+isa[[4]]$indval
+isa[[5]]$indval
+
+```
+*****
+I should point out that when you 'knit' a .Rmd file to PDF (or Word or HTML) the embedded R script is evaluated in a separate environment instead of the current workspace. That is why there is a 'Console' and 'R Markdown' tab in your RStudio session. When you use the 'Chunk' dropdown menu of the text editor it will evaluate the specified code chunks in your current workspace. You can also evaluate individual lines of code in a code chunk using the 'Run' button of the text editor.
+
+*****
+
+For five clusters there are two clusters that lack strong indicators, clusters two and three (although sago is close for group two with *d* = 0.45). Cluster two of the four-cluster grouping also lacks a strong indicator, while there are strong indicator species for all clusters in the three-cluster grouping. Let's use three clusters for now and explore vegetation and abiotic differences among them. Strong indicator species for cluster one are watermilfoil and star duckweed (*Lemna trisulca*), cluster two strong indicators are quillwort (*Isoetes* spp.) and arumleaf arrowhead (*Sagittaria cuneata*), cluster three strong indicators are sedge (*Carex* spp.), spikerush (*Eleocharis* spp.), and common mare's-tail (*Hippuris vulgaris*). Take a look at our cluster dendogram above (Fig. 8) and you can see the height where we would 'cut' the dendrogram to create three clusters of plots. Now we can start to look at the clusters to learn more about each of them and explore difference among them. We'll create a new code chunk that will 1) cut the dendrogram at a height that creates three clusters, 2) estimate indicator species canopy cover (and SD) by cluster, 3) and add a table to the report to include 2. Start a code chunk named 'indicator_cover' with options echo=FALSE, results='asis'.
+
+```{r indicator_cover, echo=TRUE, results='asis', warning=FALSE}
+##Cut the cluster dendrogram at the height that produces 3 clusters
+hcl <- cutree(sav.hacfb.hcl, h=3.5)
+
+##Estimate indicator species canopy cover and SD by cluster
+sav.cl <- cbind(sav, hcl) #add cluster classification to data frame
+sav.cl$hcl <- as.factor(sav.cl$hcl) #cluster classification to a factor
+
+letr.cl1 <- tapply(sav.cl$LETR, sav.cl$hcl, mean)[1] #Duckweed cluster 1
+mysi.cl1 <- tapply(sav.cl$MYSI, sav.cl$hcl, mean)[1] #Milfoil cluster 1
+isospp.cl2 <- tapply(sav.cl$ISOSPP, sav.cl$hcl, mean)[2]  #Chara cluster 3
+sacu.cl2 <- tapply(sav.cl$SACU, sav.cl$hcl, mean)[2]  #Chara cluster 3
+carsp.cl3<- tapply(sav.cl$CARSP, sav.cl$hcl, mean)[3] #Carex cluster 3
+elesp.cl3 <- tapply(sav.cl$ELESP, sav.cl$hcl, mean)[3] #Spikerush cluster 3
+hivu.cl3 <- tapply(sav.cl$HIVU, sav.cl$hcl, mean)[3] #Mare's-tail cluster 3
+
+cl.means <- c(letr.cl1, mysi.cl1, isospp.cl2, sacu.cl2, 
+              carsp.cl3, elesp.cl3, hivu.cl3)
+
+letr.cl1.sd <- tapply(sav.cl$LETR, sav.cl$hcl, sd)[1] #Duckweed cluster 1
+mysi.cl1.sd <- tapply(sav.cl$MYSI, sav.cl$hcl, sd)[1] #Milfoil cluster 1
+isospp.cl2.sd <- tapply(sav.cl$ISOSPP, sav.cl$hcl, sd)[2]  #Chara cluster 3
+sacu.cl2.sd <- tapply(sav.cl$SACU, sav.cl$hcl, sd)[2]  #Chara cluster 3
+carsp.cl3.sd<- tapply(sav.cl$CARSP, sav.cl$hcl, sd)[3] #Carex cluster 3
+elesp.cl3.sd <- tapply(sav.cl$ELESP, sav.cl$hcl, sd)[3] #Spikerush cluster 3
+hivu.cl3.sd <- tapply(sav.cl$HIVU, sav.cl$hcl, sd)[3] #Mare's-tail cluster 3
+
+cl.sds <- c(letr.cl1.sd, mysi.cl1.sd, isospp.cl2.sd, sacu.cl2.sd, 
+            carsp.cl3.sd, elesp.cl3.sd, hivu.cl3.sd)
+
+##Collate cluster strong indicator species canopy covers and SDs
+cl <- as.factor(c(1,1,2,2,3,3,3))
+cl.table <- data.frame(cbind(cl, round(cl.means,2), round(cl.sds,2)),
+                       row.names=NULL)
+names(cl.table) <- c("Cluster","Mean","SD")
+cl.spp <- c("LETR","MYSI","ISOSPP","SACU","CARSP","ELESP","HIVU")
+row.names(cl.table) <- cl.spp
+
+library(xtable)
+table2 <- xtable(cl.table, display=c("s","s","f","f"))
+print(table2, table.placement="H", comment=F, floating=FALSE) 
+
+```
+**Table 2**. Mean canopy cover and standard deviation of strong indicator species (*d* > 0.50) for three vegetation community phases identified using indicator species analysis (Dufresne and Legendre 1997).   
+
+Now we can start to visualize what each of the community phases looks like, at least from the standpoint of strong indicator species. Based on the life histories of the indicator species we can also start to understand how they differ from a habitat standpoint - cluster 1 would be found in the deepest areas of Lower Lake, cluster 2 in areas of intermediate depth, and cluster 3 are those areas that in the last decade have transitioned from open water to emergent vegetation in response to changes in water level management and drought. Now lets explore for abiotic differences among clusters quantitatively. We'll write a code chunk that will 1) create summary metrics by plot for mean and minimum water depth, and the number of times a plot went dry between 2007 and 2013, and 2) create a four-panel figure of boxplots by cluster for mean and minimum water depth, specific conductivity, and pH. Start a code chunk named 'abiotic_summary', with options echo=FALSE, fig.height=7, fig.width=7, and insert the code below. 
+
+```{r abiotic_summary, echo=TRUE, fig.height=7, fig.width=7}
+## Calculate mean water depth for each plot and add to 'water'
+mean.depth <- tapply(water$Depth, water$Plot, mean, na.rm=T)
+water$mnDepth <- 0
+
+for (i in 1:length (water$Depth)) {
+  j <- which(row.names(mean.depth) == water$Plot[i])
+  water$mnDepth[i] <- mean.depth[[j]]
+}
+
+### Calculate min water depth for each plot and add to 'water'
+min.depth <- tapply(water$Depth, water$Plot, min, na.rm=T)
+water$minDepth <- 0
+
+for (i in 1:length (water$Depth)) {
+  j <- which(row.names(min.depth) == water$Plot[i])
+  water$minDepth[i] <- min.depth[[j]]
+}
+
+### Calculate the number of times a plot was dry between 2007 and 2013
+yrs.dry <- tapply(water$Depth==0, water$Plot, sum, na.rm=T)
+water$yrsDry <- 0
+
+for (i in 1:length (water$Depth)) {
+  j <- which(row.names(yrs.dry) == water$Plot[i])
+  water$yrsDry[i] <- yrs.dry[[j]]
+}
+
+##Explore environmental variation among clusters
+water.cl <- cbind(water, hcl) #add cluster classification to data frame
+water.cl$hcl <- as.factor(water.cl$hcl) #cluster classification to a factor
+
+##Boxplot of environmental variables by cluster
+par(mfrow=c(2,2), mar=c(0,5,3,2), oma=c(5,0,0,0))
+boxplot(water.cl$mnDepth ~ water.cl$hcl, col="gray", ylim=c(0,100), 
+        ylab="Mean Water Depth (cm)", xlab="", cex.lab=1.25, cex.axis=1.25)
+boxplot(water.cl$minDepth ~ water.cl$hcl, col="gray", ylim=c(0,100), 
+        ylab="Minimum Water Depth (cm)", xlab="", cex.lab=1.25, cex.axis=1.25)
+boxplot(water.cl$SpCond ~ water.cl$hcl, col="gray", 
+        ylab=expression(paste("Specific Conductivity  ( ",mu,"S/cm)")), 
+        xlab="",cex.lab=1.25, cex.axis=1.25)
+boxplot(water.cl$pH ~ water.cl$hcl, col="gray", ylab="pH", xlab="",
+        cex.lab=1.25, cex.axis=1.25)
+title(xlab="Vegetation Community Phases 2007-2013", outer=T, cex.lab=2)
+
+```
+**Figure 10**. Boxplot summaries by vegetation community phase of mean and minimum water depth, specific conductivity, and pH. Phases were determined using an indicator species analysis (Dufrene and Legendre 1997) for wetland vegetation data collected on Lower Red Rock Lake and River Marsh, 2007-`r max(sav$Year)`.
+
+Now we can see graphically how the three community phases vary in water quality metrics. Our next question would be 'are the differences significantly different'? We can test that quickly and easily using a Tukey's honestly significant difference (HSD) test. Create (yet!) another code chunk to do this (name it 'tukeys_hsd'; you should have a pretty good idea of what chunk options you'll need by now - remember the default is to print your code and ouput, but you only want the latter in your report).   
+
+```{r tukeys_hsd, echo=TRUE}
+##Tukey's HSD to test for differences in water metrics between clusters
+cl.mndepth.aov <- aov(mnDepth ~ hcl, data=water.cl)
+TukeyHSD(cl.mndepth.aov, conf.level=0.90)
+
+cl.mindepth.aov <- aov(minDepth ~ hcl, data=water.cl)
+TukeyHSD(cl.mindepth.aov, conf.level=0.90)
+
+cl.spcond.aov <- aov(SpCond ~ hcl, data=water.cl)
+TukeyHSD(cl.spcond.aov, conf.level=0.90)
+
+cl.pH.aov <- aov(pH ~ hcl, data=water.cl)
+TukeyHSD(cl.pH.aov, conf.level=0.90)
+
+```
+
+Now we can start to see where clusters differ at least with respect to common water quality metrics. Use the boxplots to help you work through what the Tukey's HSD results show. You should be able to tell from the output that 1) all three clusters differ in mean and minimum water levels, and 2) the third cluster varies from the other two in specific conductivity and pH. How could you integrate that information into management? 
+
+O.k., one last aspect of this process to look at - two simple summaries of transitions among vegetation community phases. We'll construct tables that provide 1) the number of plots surveyed each year by vegetation phase, and 2) first-order Markovian transition probabilities, to examine how phases shifted through time. Create a code chunk named 'transition_summary' and paste in the code below. Remember to specify chunk option results='asis' to get the table formatting to look 'pretty'.
+
+```{r transition_summary, echo=TRUE, results='asis'}
+trans <- tapply(sav.cl$Plot, list(sav.cl$hcl,sav.cl$Year), length)
+
+library(xtable)
+table3 <- xtable(trans)
+print(table3, table.placement="H", comment=F, floating=FALSE) 
+
+```
+**Table 3**. Summary of vegetation community phases observed annually on Lower Red Rock Lake and River Marsh, 2007-`r max(sav$Year)`.
+
+The summary table above puts into perspective which of the phases dominates Lower Lake - phase one. This is probably to be expected - the lake is shallow without much bottom contour, resulting in small changes in depths as you move across the lake. Also, SAV communities are relatively simple (compared to terrestrial plant communities), so what we're seeing from this summary is that much of the lake is in a vegetation community phase indicated by watermilfoil. If you were managing an impounded basin as a semi-permanent wetland this phase would likely indicate the need to conduct a drawdown. Watermilfoil is tolerant of low-oxygen conditions and will often become a dominant species if water levels are held relatively high and static for many years.   
+
+Now let's create the last table that will contain Markov transitions among phases. A "first-order Markovian" process is simply one that is dependent on the prior condition. For our example it means we are asking 'given a plot's phase last year, what is the likelihood it stayed in that phase vs. shifted to one of the other two phases?' That means there are three probabilities to estimate for each phase (e.g., phase one stays phase one, shifts to phase two, or shifts to phase three), so we want a table with three columns and three rows. Start a *final* code chunk named 'markov_summary', give it the necessary chunk options, and paste in the code below. The table is read across rows, e.g., the probability of phase one transitioning to phase two is 0.06.    
+
+```{r markov_summary, echo=TRUE, results='asis'}
+##Calculate transition probabilities across all years 
+sav.cl <- sav.cl[order(sav.cl$Plot),] #sort data by plot
+
+sav.cl.xtab <-  xtabs(formula= sav.cl$hcl ~ sav.cl$Year + sav.cl$Plot, 
+                      sparse = T) #create a year by plot crosstab
+sav.cl.xtab <- as.matrix(sav.cl.xtab) #convert to a matrix
+
+p <- matrix(nrow=4, ncol=4, 0) #empty matrix to hold transition probabilities
+
+for (j in 1:length(sav.cl.xtab[1,])) {
+  for (t in 1:(length(sav.cl.xtab[,1]) - 1)) 
+  p[sav.cl.xtab[t,j], sav.cl.xtab[t + 1,j]] <- p[sav.cl.xtab[t,j], 
+  sav.cl.xtab[t + 1,j]] + 1
+     }
+for (i in 1:3) p[i, ] <- p[i, ] / sum(p[i, ])
+
+library(xtable)
+table4 <- xtable(round(p[1:3,1:3],3))
+print(table4, table.placement="H", comment=F, floating=FALSE) 
+
+
+```
+**Table 4**. First-order Markovian transition probabilities for vegetation community phases of Lower Red Rock Lake and River Marsh, 2007-`r max(sav$Year)`. Transition probabilities are read across rows, e.g., probability of phase one transitioning to phase two is 0.06. 
+
+Now we can see what the most likely transitions were, which phases are most 'stable', what transitions haven't been observed, etc. This is a start to figuring out what *drives* transitions from one phase to another, but we'll leave that for another time. 
+
+We've covered *a lot* of ground over the last two days and I hope that everyone sees some value to incorporating both dynamic documents and state and transition models into refuge science and management. These are both very powerful tools that I believe can help take us to the next level of using monitoring data effectively and efficiently to inform management, as well as learn about the systems we manage. I understand that what we've covered is technically complex (much more so than the level of conceptual complexity), but you now have the 'in-house' support to accomplish this level of work with your data so I hope you'll view this as an opportunity to use monitoring to improve the ecological understanding of the systems we manage. Given the resources necessary to collect quality habitat data it seems a waste to only use it to make histograms in Excel as our 'analysis' for reports! 
+
+*****
+
+\pagebreak
+
+#Literature Cited
+This is in progress; I'll send everone an updated pdf that will have this completed for your reference. There are ways to have R format citations, but I haven't gotten to that step yet!
