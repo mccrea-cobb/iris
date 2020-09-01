@@ -21,22 +21,23 @@ library(tidyselect)
   
 knitr::opts_chunk$set(echo = TRUE)
 
-source("../functions/query_iris.R")
-source('../functions/primr_get_iris.R')
-read_chunk('../plots.R')
+source("../../R/query_iris.R")
+read_chunk("../../R/plots.R")
+read_chunk("../../R/summaries.R")
 ```
 
 ```{r get_data, echo=FALSE}
 
-dim_survey <- query_iris(con, "Refuges", "DimSurvey") %>%
+survey_data <- query_iris("Refuges", "DimSurvey") %>%
   filter(Station %like% "FF07%") %>%
-  #filter(SurveyStatus != "Historic") %>%
+  filter(SurveyStatus != "Historic") %>%
   collect()
 
-dim_annual_activity <- query_iris(con, "Refuges", "DimSurveyAnnualActivity")
-dim_annual_activity_ak <- dim_annual_activity %>%
-  filter(str_detect(Station, "FF07")) %>%
-  collect()
+# dim_annual_activity <- query_iris("Refuges", "DimSurveyAnnualActivity")
+# dim_annual_activity_ak <- dim_annual_activity %>%
+#   filter(Station %like% "FF07") %>%
+#   collect()
+
 
 ```
 
