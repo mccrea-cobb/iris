@@ -3,8 +3,7 @@
 .RData
 .Ruserdata
 R/summaries.R
-R/tables.R
 R/primr_get_ak.R
 R/primr_get.R
-R/plots.R
 R/read_iris.R
+R/01_acquire_data.R
