@@ -1,23 +1,30 @@
-#' Query IRIS
+#' Connect to and query the FWS IRIS Warehouse
 #'
-#' @description Returns a query of the IRIS Data Warehouse with columns \code{column_size==0} ordered last. This allow the table to be read into R using ODBC/DBI and addresses the "Invalid descriptor error" (https://github.com/r-dbi/odbc/issues/309).
+#' @description Returns a query of the IRIS Data Warehouse with columns \code{column_size==0} ordered last.
+#' This allow the table to be read into R using ODBC/DBI and addresses the "Invalid descriptor error" (https://github.com/r-dbi/odbc/issues/309).
 #'
 #' @author McCrea Cobb \email{mccrea_cobb@@fws.gov}
 #'
-#' @param schema The schema of the database
-#' @param tbl_name The name of the desired table
+#' @param schema The schema of the database in the IRIS Warehouse
+#' @param tbl_name The name of the desired table in the IRIS Warehouse
+#' @... inherited arguments
 #'
 #' @return A SQL query list returned from \code{dplyr::tbl}
 #' @export
 #'
-#' @examples query_iris("Refuges", "DimSurvey")
+#' @examples
+#' \dontrun{
+#' query_iris("Refuges", "DimSurvey")
+#' }
 
-query_iris <- function(schema, tbl_name) {
-  require(DBI)
-  require(odbc)
-  require(tidyverse)
-  require(dbplyr)
-  require(tidyselect)
+query_iris <- function(schema,
+                       tbl_name,
+                       ...) {
+  # require(DBI)
+  # require(odbc)
+  # require(tidyverse)
+  # require(dbplyr)
+  # require(tidyselect)
 
   # Requires VPN!
 

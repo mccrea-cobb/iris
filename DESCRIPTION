@@ -1,11 +1,19 @@
 Package: iris
 Type: Package
-Title: What the Package Does (Title Case)
-Version: 0.1.0
-Author: Who wrote it
-Maintainer: The package maintainer <yourself@somewhere.net>
-Description: More about what it does (maybe more than one line)
-    Use four spaces when indenting paragraphs within the Description.
+Title: Connect to and query data from the USFWS IRIS Warehouse
+Version: 0.0.0.9000
+Author: McCrea Cobb <mccrea_cobb@fws.gov>
+Maintainer: McCrea Cobb <mccrea_cobb@fws.gov>
+Description: Connects to and queries data from the USFWS IRIS Warehouse.
+Depends: R (>= 3.1.0)
 License: What license is it under?
 Encoding: UTF-8
 LazyData: true
+Imports: DBI,
+         odbc,
+         tidyverse, 
+         dbplyr, 
+         tidyselect,
+         httr,
+         jsonlite
+
