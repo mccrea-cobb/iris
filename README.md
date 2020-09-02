@@ -5,5 +5,5 @@ The United States Fish and Wildlife Service (FWS) GitHub project code is provide
 *In development.* An R package to connect to and query data from the USFWS IRIS Warehouse.
 
 # Instructions
-if (!require("devtools")) install.packages("devtools")
-devtools::install_github("mccrea-cobb/iris")
+`if (!require("devtools")) install.packages("devtools")`  
+`devtools::install_github("mccrea-cobb/iris")`
