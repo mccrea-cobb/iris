@@ -9,11 +9,13 @@ Depends: R (>= 3.1.0)
 License: What license is it under?
 Encoding: UTF-8
 LazyData: true
-Imports: DBI,
-         odbc,
-         tidyverse, 
-         dbplyr, 
-         tidyselect,
-         httr,
-         jsonlite
-
+RoxygenNote: 7.1.1
+Imports:
+    DBI,
+    odbc,
+    tidyverse,
+    dbplyr,
+    tidyselect,
+    naniar,
+    httr,
+    jsonlite
