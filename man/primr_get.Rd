@@ -11,10 +11,13 @@ primr_get(
   type = NULL,
   status = NULL,
   species = NULL,
-  output = "list"
+  output = "list",
+  ...
 )
 }
 \arguments{
+\item{max}{The number of rows to return. Default is \code{1000}.}
+
 \item{response_order}{The order of the returned data frame By default, response_order=id.}
 
 \item{cost_code}{The unique refuge cost code. Use \%25 as a wild card (e.g., FF07\%25 for all Region 7 surveys)}
@@ -41,11 +44,13 @@ primr_get(
 
 \item{species}{the species name, matched against any listed or non-listed species scientific name or common name, case insensitively}
 
-\item{as_df}{The format of the data to be returned. Acceptable values include:
+\item{output}{The format of the data to be returned. Acceptable values include:
 \itemize{
  \item{df}{Results will be returned as a flattened data frame}
  \item{list}{Results will be returned as a list of data frames for each refuge}
  }}
+
+\item{...}{arguments to pass}
 }
 \value{
 a data frame containing FWS refuge survey metadata

@@ -11,6 +11,14 @@
 #'
 #' @return A SQL query list returned from \code{dplyr::tbl}
 #'
+#' @importFrom DBI dbConnect
+#' @importFrom odbc odbcConnectionColumns
+#' @importFrom magrittr %>%
+#' @importFrom dplyr filter
+#' @importFrom dplyr pull
+#' @importFrom dplyr select
+#' @importFrom dplyr tbl
+#' @importFrom tidyselect all_of
 #' @export
 #'
 #' @examples
@@ -21,13 +29,6 @@
 query_iris <- function(schema,
                        tbl_name,
                        ...) {
-  # require(DBI)
-  # require(odbc)
-  # require(tidyverse)
-  # require(dbplyr)
-  # require(tidyselect)
-
-  # Requires VPN!
 
   con <- DBI::dbConnect(odbc(),
                    Driver = "ODBC Driver 17 for SQL Server",
@@ -37,7 +38,9 @@ query_iris <- function(schema,
                    Port = 1433)
 
   # grab column names
-  all_cols <- odbc::odbcConnectionColumns(con, name = tbl_name, schema_name = schema)
+  all_cols <- odbc::odbcConnectionColumns(con,
+                                          name = tbl_name,
+                                          schema_name = schema)
   # extract long column names
   long_cols <- all_cols %>%
     dplyr::filter(column_size == 0) %>%

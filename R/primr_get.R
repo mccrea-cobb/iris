@@ -4,6 +4,8 @@
 #'
 #' @author McCrea Cobb \email{mccrea_cobb@@fws.gov}
 #'
+#' @param max The number of rows to return. Default is \code{1000}.
+#' @param response_order The row order of the returned data frame. Default is \code{"id"}.
 #' @param cost_code The unique refuge cost code. Use \%25 as a wild card (e.g., FF07\%25 for all Region 7 surveys)
 #' @param type An exact matching (case insensitive) survey type name. Accepted values include:
 #' \itemize{
@@ -25,15 +27,19 @@
 #' }
 #' @param species the species name, matched against any listed or non-listed species scientific name or common name, case insensitively
 #' @param response_order The order of the returned data frame By default, response_order=id.
-#' @param as_df The format of the data to be returned. Acceptable values include:
+#' @param output The format of the data to be returned. Acceptable values include:
 #' \itemize{
 #'  \item{df}{Results will be returned as a flattened data frame}
 #'  \item{list}{Results will be returned as a list of data frames for each refuge}
 #'  }
+#' @param ... arguments to pass
 #'
 #' @return a data frame containing FWS refuge survey metadata
 #'
-#' @export
+#' @importFrom httr GET
+#' @importFrom httr http_error
+#' @importFrom httr content
+#' @importFrom jsonlite fromJSON
 #'
 #' @examples
 #' \dontrun{
@@ -46,10 +52,8 @@ primr_get <- function(max = 1000,
                       type = NULL,
                       status = NULL,
                       species = NULL,
-                      output = "list"){
-  # require(httr)
-  # require(jsonlite)
-
+                      output = "list",
+                      ...){
   # Query parameters
   query_params <- list(max = max,
                        order = response_order,
@@ -102,7 +106,11 @@ primr_get <- function(max = 1000,
 #'
 #' @return a data frame containing PRIMR survey data for the Alaska region
 #'
-#' @export
+#' @importFrom naniar replace_with_na
+#' @importFrom dplyr mutate
+#' @importFrom purrr map_if
+#' @importFrom purrr reduce
+#' @importFrom magrittr %>%
 #'
 #' @examples
 #' \dontrun{
@@ -113,15 +121,8 @@ primr_get_ak <- function(status = NULL,
                          saveit = FALSE,
                          filedir,
                          ...){
-
-  # Required packages and functions
-  # library(tidyverse)
-  # library(naniar)  # To deal with missing values
-  # source("./code/functions/primr_get.R")
-  # source("./code/functions/cost_codes.R")
-
   # Create a cost code dataframe
-  ccs <- cost_codes()
+  ccs <- get_cost_codes()
 
   # Filter out Kanuti, the problem child in PRIMR..
   ccs <- ccs %>%
@@ -134,13 +135,13 @@ primr_get_ak <- function(status = NULL,
 
   # Deal with not having protocol-related variables when a station has no protocol docs
   survey_data <- survey_data %>%
-    purr::map_if(~!("protocol" %in% names(.x)), ~.x %>% dplyr::mutate(protocol=NA), .depth = 1) %>%
-    purr::map_if(~!("protocolUsed" %in% names(.x)), ~.x %>% dplyr::mutate(protocolUsed=NA), .depth = 1) %>%
-    purr::map_if(~!("protocol.servCatId" %in% names(.x)), ~.x %>% dplyr::mutate(protocol.servCatId=NA), .depth = 1) %>%
-    purr::map_if(~!("protocol.servCatTitle" %in% names(.x)), ~.x %>% dplyr::mutate(protocol.servCatTitle=NA), .depth = 1) %>%
-    purr::map_if(~!("protocol.servCatVersion" %in% names(.x)), ~.x %>% dplyr::mutate(protocol.servCatVersion=NA), .depth = 1) %>%
-    purr::map_if(~!("protocol.referenceType" %in% names(.x)), ~.x %>% dplyr::mutate(protocol.referenceType=NA), .depth = 1) %>%
-    purr::reduce(rbind)  # Reduce the list of data frames into a single data frame
+    purrr::map_if(~!("protocol" %in% names(.x)), ~.x %>% dplyr::mutate(protocol=NA), .depth = 1) %>%
+    purrr::map_if(~!("protocolUsed" %in% names(.x)), ~.x %>% dplyr::mutate(protocolUsed=NA), .depth = 1) %>%
+    purrr::map_if(~!("protocol.servCatId" %in% names(.x)), ~.x %>% dplyr::mutate(protocol.servCatId=NA), .depth = 1) %>%
+    purrr::map_if(~!("protocol.servCatTitle" %in% names(.x)), ~.x %>% dplyr::mutate(protocol.servCatTitle=NA), .depth = 1) %>%
+    purrr::map_if(~!("protocol.servCatVersion" %in% names(.x)), ~.x %>% dplyr::mutate(protocol.servCatVersion=NA), .depth = 1) %>%
+    purrr::map_if(~!("protocol.referenceType" %in% names(.x)), ~.x %>% dplyr::mutate(protocol.referenceType=NA), .depth = 1) %>%
+    purrr::reduce(rbind)  # Reduce the list of data frames into a single data frame
 
   # Format the dataset
   survey_data <- survey_data %>%
