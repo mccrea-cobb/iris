@@ -56,3 +56,4 @@ query_iris <- function(schema,
   df <- dplyr::tbl(con, dbplyr::in_schema(schema, tbl_name)) %>%
     dplyr::select(tidyselect::all_of(ordered_cols))
 }
+
