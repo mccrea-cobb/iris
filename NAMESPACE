@@ -3,6 +3,7 @@
 export(query_iris)
 import(odbc)
 importFrom(DBI,dbConnect)
+importFrom(dbplyr,in_schema)
 importFrom(dplyr,filter)
 importFrom(dplyr,mutate)
 importFrom(dplyr,pull)
