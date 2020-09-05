@@ -19,6 +19,7 @@
 #' @importFrom dplyr select
 #' @importFrom dplyr tbl
 #' @importFrom tidyselect all_of
+#' @importFrom dbplyr in_schema
 #' @export
 #'
 #' @examples
@@ -52,6 +53,6 @@ query_iris <- function(schema,
   # put long columns at the end
   ordered_cols <- unique(c(other_cols, long_cols))
 
-  df <- dplyr::tbl(con, in_schema(schema, tbl_name)) %>%
+  df <- dplyr::tbl(con, dbplyr::in_schema(schema, tbl_name)) %>%
     dplyr::select(tidyselect::all_of(ordered_cols))
 }
