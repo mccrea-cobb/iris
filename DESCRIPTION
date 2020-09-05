@@ -6,14 +6,18 @@ Author: McCrea Cobb <mccrea_cobb@fws.gov>
 Maintainer: McCrea Cobb <mccrea_cobb@fws.gov>
 Description: Connects to and queries data from the USFWS IRIS Warehouse.
 Depends: R (>= 3.1.0)
-License: What license is it under?
+License: CC0
 Encoding: UTF-8
 LazyData: true
-Imports: DBI,
-         odbc,
-         tidyverse, 
-         dbplyr, 
-         tidyselect,
-         httr,
-         jsonlite
-
+RoxygenNote: 7.1.1
+Imports:
+    magrittr,
+    purrr,
+    DBI,
+    odbc,
+    dplyr,
+    dbplyr,
+    tidyselect,
+    naniar,
+    httr,
+    jsonlite

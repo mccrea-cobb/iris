@@ -7,14 +7,12 @@
 #'
 #' @return a data frame containing refuge names and their associated cost codes for Alaska refuges
 #'
-#' @export
-#'
 #' @examples
 #' \dontrun{
-#' cost_codes(TRUE, "cc.Rdata")
+#' get_cost_codes(TRUE, "cc.Rdata")
 #' }
 
-cost_codes <- function(saveit = FALSE,
+get_cost_codes <- function(saveit = FALSE,
                        filedir){
   df <- data.frame(
   refuge = c("Alaska Maritime",
