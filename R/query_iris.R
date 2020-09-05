@@ -12,7 +12,7 @@
 #' @return A SQL query list returned from \code{dplyr::tbl}
 #'
 #' @importFrom DBI dbConnect
-#' @importFrom odbc odbcConnectionColumns
+#' @import odbc
 #' @importFrom magrittr %>%
 #' @importFrom dplyr filter
 #' @importFrom dplyr pull
